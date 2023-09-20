@@ -10,6 +10,7 @@ describe('We can create text nodes', () => {
 		const want = {
 			type: DOM_TYPES.TEXT,
 			value: 'Hello world!',
+			el: null,
 		};
 
 		const got = hString('Hello world!');
@@ -22,10 +23,12 @@ describe('We can create fragments', () => {
 	it('should create a fragment', () => {
 		const want = {
 			type: DOM_TYPES.FRAGMENT,
+			el: null,
 			children: [
 				{
 					type: DOM_TYPES.TEXT,
 					value: 'Hello world!',
+					el: null,
 				},
 			],
 		};
@@ -44,6 +47,7 @@ describe('We can create elements', () => {
 			props: {},
 			children: [
 				{
+					el: null,
 					type: DOM_TYPES.TEXT,
 					value: 'Hello world!',
 				},
@@ -67,6 +71,7 @@ describe('We can create elements', () => {
 				{
 					type: DOM_TYPES.TEXT,
 					value: 'Hello world!',
+					el: null,
 				},
 			],
 		};
@@ -85,6 +90,7 @@ describe('We can create more complex VDOMS', () => {
 			props: {},
 			children: [
 				{
+					el: null,
 					type: DOM_TYPES.TEXT,
 					value: 'Hello world!',
 				},
@@ -96,6 +102,7 @@ describe('We can create more complex VDOMS', () => {
 						{
 							type: DOM_TYPES.TEXT,
 							value: 'Hello world!',
+							el: null,
 						},
 						{
 							type: DOM_TYPES.ELEMENT,
@@ -103,6 +110,7 @@ describe('We can create more complex VDOMS', () => {
 							props: {},
 							children: [
 								{
+									el: null,
 									type: DOM_TYPES.TEXT,
 									value: 'Hello world!',
 								},
@@ -118,6 +126,7 @@ describe('We can create more complex VDOMS', () => {
 						{
 							type: DOM_TYPES.TEXT,
 							value: 'Hello world!',
+							el: null,
 						},
 					],
 				},

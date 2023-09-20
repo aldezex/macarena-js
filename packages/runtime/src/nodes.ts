@@ -7,6 +7,7 @@ export const DOM_TYPES = {
 export type VNodeText = {
 	type: typeof DOM_TYPES.TEXT;
 	value: string;
+	el: Text | null;
 };
 
 export type VNodeElement = {
@@ -14,11 +15,14 @@ export type VNodeElement = {
 	props: Record<string, any>;
 	children: VNode[];
 	type: typeof DOM_TYPES.ELEMENT;
+	el: HTMLElement | null;
+	listeners?: Record<string, any>;
 };
 
 export type VNodeFragment = {
 	type: typeof DOM_TYPES.FRAGMENT;
 	children: VNode[];
+	el: HTMLElement | null;
 };
 
 export type VNode = VNodeElement | VNodeFragment | VNodeText;

@@ -1,3 +1,5 @@
+import { destroyDOM } from '../destroy-dom';
+import { mountDOM } from '../mount-dom';
 import { ChildrenVNode, DOM_TYPES, VNodeFragment } from '../nodes';
 import { withoutNulls } from '../utils/arrays';
 import { mapTextNodes } from './text';
@@ -8,5 +10,21 @@ export function hFragment(vNodes: ChildrenVNode[]): VNodeFragment {
 	return {
 		type: DOM_TYPES.FRAGMENT,
 		children,
+		el: null,
 	};
+}
+
+export function createFragmentNodes(
+	vdom: VNodeFragment,
+	parentEl: HTMLElement
+) {
+	const { children } = vdom;
+	vdom.el = parentEl;
+
+	children.forEach(child => mountDOM(child, parentEl));
+}
+
+export function removeFragmentNodes(vdom: VNodeFragment) {
+	const { children } = vdom;
+	children.forEach(destroyDOM);
 }

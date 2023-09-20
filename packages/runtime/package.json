@@ -1,0 +1,31 @@
+{
+	"name": "macarena-runtime",
+	"version": "0.0.1",
+	"description": "The Runtime for the MacarenaJS framework",
+	"main": "index.js",
+	"scripts": {
+		"build": "vite build"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/aldezex/macarena-js.git"
+	},
+	"keywords": [
+		"runtime",
+		"web",
+		"framework",
+		"javascript",
+		"typescript"
+	],
+	"author": "Aldezex",
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/aldezex/macarena-js/issues"
+	},
+	"homepage": "https://github.com/aldezex/macarena-js#readme",
+	"dependencies": {},
+	"devDependencies": {
+		"typescript": "^5.2.2",
+		"vite": "^4.4.9"
+	}
+}

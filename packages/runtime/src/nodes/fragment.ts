@@ -16,12 +16,15 @@ export function hFragment(vNodes: ChildrenVNode[]): VNodeFragment {
 
 export function createFragmentNodes(
 	vdom: VNodeFragment,
-	parentEl: HTMLElement
+	parentEl: HTMLElement,
+	index?: number
 ) {
 	const { children } = vdom;
 	vdom.el = parentEl;
 
-	children.forEach(child => mountDOM(child, parentEl));
+	children.forEach((child, i) =>
+		mountDOM(child, parentEl, index ? index + i : undefined)
+	);
 }
 
 export function removeFragmentNodes(vdom: VNodeFragment) {

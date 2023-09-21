@@ -2,6 +2,7 @@ import { destroyDOM } from './destroy-dom';
 import { dispatcher as createDispatcher } from './dispatcher';
 import { mountDOM } from './mount-dom';
 import { VNode } from './nodes';
+import { patchDOM } from './patch-dom';
 
 interface App {
 	state: any;
@@ -31,19 +32,15 @@ export function createApp({ state = {}, view, reducers }: App) {
 	}
 
 	function render() {
-		if (vdom) {
-			destroyDOM(vdom);
-		}
-
-		vdom = view(state, emit);
-
-		mountDOM(vdom, parentEl!);
+		const newDom = view(state, emit);
+		patchDOM(vdom!, newDom, parentEl!);
 	}
 
 	return {
 		mount(el: HTMLElement) {
 			parentEl = el;
-			render();
+			vdom = view(state, emit);
+			mountDOM(vdom, el);
 		},
 		unmount() {
 			destroyDOM(vdom!);

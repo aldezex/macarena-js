@@ -1,3 +1,4 @@
+import { insert } from '../mount-dom';
 import { ChildrenVNode, DOM_TYPES, VNodeText } from '../nodes';
 
 export function mapTextNodes(arr: ChildrenVNode[]) {
@@ -10,13 +11,17 @@ export function hString(str: string): VNodeText {
 	return { type: DOM_TYPES.TEXT, value: str, el: null };
 }
 
-export function createTextNode(vdom: VNodeText, parentEl: HTMLElement) {
+export function createTextNode(
+	vdom: VNodeText,
+	parentEl: HTMLElement,
+	index?: number
+) {
 	const { value } = vdom;
 
 	const textNode = document.createTextNode(value);
 	vdom.el = textNode;
 
-	parentEl.append(textNode);
+	insert(textNode, parentEl, index);
 }
 
 export function removeTextNode(vdom: VNodeText) {

@@ -1,10 +1,14 @@
 import { destroyDOM } from '../destroy-dom';
 import { setAttributes } from '../lib/attributes';
 import { addEventListeners, removeEventListeners } from '../lib/events';
-import { mountDOM } from '../mount-dom';
+import { insert, mountDOM } from '../mount-dom';
 import { VNodeElement } from '../nodes';
 
-export function createElementNode(vdom: VNodeElement, parentEl: HTMLElement) {
+export function createElementNode(
+	vdom: VNodeElement,
+	parentEl: HTMLElement,
+	index?: number
+) {
 	const { tag, props, children } = vdom;
 
 	const element = document.createElement(tag);
@@ -12,7 +16,7 @@ export function createElementNode(vdom: VNodeElement, parentEl: HTMLElement) {
 	vdom.el = element;
 
 	children.forEach(child => mountDOM(child, element));
-	parentEl.append(element);
+	insert(element, parentEl, index);
 }
 
 export function removeElementNode(vdom: VNodeElement) {

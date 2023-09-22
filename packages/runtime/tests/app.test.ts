@@ -32,11 +32,12 @@ describe('createApp', () => {
 			state: 0,
 			reducers: {
 				add: (state, amount) => state + amount,
+				decrease: (state, amount) => state - amount,
 			},
 			view: (state, emit) =>
 				h('div', {}, [
 					h('button', { on: { click: () => emit('add', 1) } }, ['+']),
-					h('button', { on: { click: () => emit('add', -1) } }, ['-']),
+					h('button', { on: { click: () => emit('decrease', 1) } }, ['-']),
 					h('span', {}, [state]),
 				]),
 		});
@@ -63,12 +64,20 @@ describe('createApp', () => {
 			state: 0,
 			reducers: {
 				add: (state, amount) => state + amount,
+				decrease: (state, amount) => state - amount,
 			},
 			view: (state, emit) =>
 				h('div', {}, [
-					h('button', { on: { click: () => emit('add', 1) } }, ['+']),
-					h('button', { on: { click: () => emit('add', -1) } }, ['-']),
+					h('button', { id: 'increase', on: { click: () => emit('add', 1) } }, [
+						'+',
+					]),
+					h(
+						'button',
+						{ id: 'decrease', on: { click: () => emit('decrease', 1) } },
+						['-']
+					),
 					h('span', {}, [state]),
+					state > 0 ? h('span', {}, ['wow']) : null,
 				]),
 		});
 
@@ -76,16 +85,22 @@ describe('createApp', () => {
 		app.mount(el);
 
 		expect(el.innerHTML).toBe(
-			'<div><button>+</button><button>-</button><span>0</span></div>'
+			'<div><button id="increase">+</button><button id="decrease">-</button><span>0</span></div>'
 		);
 
-		const buttons = el.querySelectorAll('button');
-		buttons[0].click();
-		buttons[0].click();
-		buttons[1].click();
+		const increase = el.querySelector('#increase') as HTMLButtonElement;
+		const decrease = el.querySelector('#decrease') as HTMLButtonElement;
+
+		increase.click();
 
 		expect(el.innerHTML).toBe(
-			'<div><button>+</button><button>-</button><span>1</span></div>'
+			'<div><button id="increase">+</button><button id="decrease">-</button><span>1</span><span>wow</span></div>'
+		);
+
+		decrease.click();
+
+		expect(el.innerHTML).toBe(
+			'<div><button id="increase">+</button><button id="decrease">-</button><span>0</span></div>'
 		);
 
 		app.unmount();

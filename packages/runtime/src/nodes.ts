@@ -26,4 +26,4 @@ export type VNodeFragment = {
 };
 
 export type VNode = VNodeElement | VNodeFragment | VNodeText;
-export type ChildrenVNode = VNodeElement | VNodeFragment | string;
+export type ChildrenVNode = VNodeElement | VNodeFragment | string | null;

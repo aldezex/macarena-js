@@ -15,7 +15,7 @@ export function createElementNode(
 	addProps(element, props, vdom);
 	vdom.el = element;
 
-	children.forEach(child => mountDOM(child, element));
+	children.forEach(child => mountDOM(child, element, undefined));
 	insert(element, parentEl, index);
 }
 

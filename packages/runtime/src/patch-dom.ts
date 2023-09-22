@@ -198,10 +198,6 @@ function patchChildren(oldVdom: VNode, newVdom: VNode) {
 	const newChildren = extractChildren(newVdom);
 	const parentEl = oldVdom.el;
 
-	if (!oldChildren || !newChildren) {
-		return;
-	}
-
 	const diffSeq = arraysDiffSequence(oldChildren, newChildren, areNodesEqual);
 
 	for (const operation of diffSeq) {

@@ -2,18 +2,59 @@ import { createApp } from '../../packages/runtime/dist/runtime.es';
 import { h } from '../../packages/runtime/src/h';
 
 const app = createApp({
-	state: 0,
+	state: [
+		{ todo: 'Walk the dog', done: true },
+		{ todo: 'Learn JavaScript', done: false },
+		{ todo: 'Watch TV', done: false },
+	],
 	reducers: {
-		add: (state, amount) => state + amount,
-		substract: (state, amount) => state - amount,
+		addTodo: (state, payload) => [...state, payload],
+		completeTodo: (state, payload) =>
+			state.map((todo, index) => {
+				if (index === payload) {
+					return { ...todo, done: !todo.done };
+				}
+				return todo;
+			}),
 	},
 	view: (state, emit) =>
 		h('h1', {}, [
-			`Count: ${state}`,
+			`Todos`,
 			h('div', {}, [
-				h('button', { onclick: () => emit('add', 1) }, ['Add']),
-				h('button', { onclick: () => emit('substract', 1) }, ['Substract']),
-				state > 10 ? 'Count is greater than 10' : null,
+				h('input', {
+					type: 'text',
+					onkeyup: event => {
+						if (event.keyCode === 13) {
+							emit('addTodo', {
+								done: false,
+								todo: event.target.value,
+							});
+							event.target.value = '';
+						}
+					},
+				}),
+				...state.map((todo, index) => {
+					return h('div', {}, [
+						h(
+							'input',
+							{
+								type: 'checkbox',
+								checked: todo.done,
+								onclick: () => emit('completeTodo', index),
+							},
+							[]
+						),
+						h(
+							'span',
+							{
+								style: {
+									opacity: todo.done ? 0.5 : 1,
+								},
+							},
+							[todo.todo]
+						),
+					]);
+				}),
 			]),
 		]),
 });

@@ -22,7 +22,7 @@ export function patchDOM(
 	parentEl: HTMLElement
 ) {
 	if (!areNodesEqual(oldVdom, newVdom)) {
-		const index = Array.from(parentEl.childNodes).indexOf(oldVdom.el!);
+		const index = findIndexInParent(parentEl, oldVdom.el!);
 		destroyDOM(oldVdom);
 		mountDOM(newVdom, parentEl, index);
 
@@ -46,6 +46,15 @@ export function patchDOM(
 	patchChildren(oldVdom, newVdom);
 
 	return newVdom;
+}
+
+function findIndexInParent(parentEl: HTMLElement, el: HTMLElement | Text) {
+	const index = Array.from(parentEl.childNodes).indexOf(el);
+	if (index < 0) {
+		return undefined;
+	}
+
+	return index;
 }
 
 function patchText(oldVdom: VNode, newVdom: VNode) {
@@ -239,7 +248,7 @@ function patchChildren(oldVdom: VNode, newVdom: VNode) {
 
 export function extractChildren(vdom: VNode, children: VNode[] = []) {
 	if (vdom.type === DOM_TYPES.TEXT) {
-		return [];
+		return null;
 	}
 
 	if (vdom.children == null) {

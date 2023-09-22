@@ -1,0 +1,15 @@
+{
+	"name": "simple-example",
+	"version": "1.0.0",
+	"description": "Simple Example of MacarenaJS",
+	"main": "index.js",
+	"scripts": {
+		"dev": "vite",
+		"postinstall": "cd ../.. && npm run build"
+	},
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"vite": "^4.4.9"
+	}
+}

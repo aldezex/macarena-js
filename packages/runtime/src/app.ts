@@ -1,5 +1,5 @@
 import { destroyDOM } from './destroy-dom';
-import { dispatcher as createDispatcher } from './dispatcher';
+import { Dispatcher } from './dispatcher';
 import { mountDOM } from './mount-dom';
 import { VNode } from './nodes';
 import { patchDOM } from './patch-dom';
@@ -10,11 +10,11 @@ interface App {
 	reducers: Record<string, (state: any, payload: any) => any>;
 }
 
-export function createApp({ state = {}, view, reducers }: App) {
+export function createApp({ state = {}, view, reducers = {} }: App) {
 	let parentEl: HTMLElement | null = null;
 	let vdom: ReturnType<typeof view> | null = null;
 
-	const dispatcher = createDispatcher();
+	const dispatcher = new Dispatcher();
 	const subscriptions = [dispatcher.afterEveryCommand(render)];
 
 	for (const actionName in reducers) {
@@ -41,12 +41,17 @@ export function createApp({ state = {}, view, reducers }: App) {
 			parentEl = el;
 			vdom = view(state, emit);
 			mountDOM(vdom, el);
+
+			return this;
 		},
 		unmount() {
 			destroyDOM(vdom!);
 			vdom = null;
 
 			subscriptions.forEach(unsuscribe => unsuscribe());
+		},
+		emit(eventName: string, payload: any) {
+			emit(eventName, payload);
 		},
 	};
 }

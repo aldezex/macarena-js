@@ -23,6 +23,7 @@ export type VNodeFragment = {
 	type: typeof DOM_TYPES.FRAGMENT;
 	children: VNode[];
 	el: HTMLElement | null;
+	props?: Record<string, any>;
 };
 
 export type VNode = VNodeElement | VNodeFragment | VNodeText;

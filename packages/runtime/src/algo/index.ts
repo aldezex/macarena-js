@@ -23,161 +23,64 @@ export function objectsDiff(
 	};
 }
 
-export function arraysDiff(oldArray: string[], newArray: string[]) {
-	return {
-		added: newArray.filter(item => !oldArray.includes(item)),
-		removed: oldArray.filter(item => !newArray.includes(item)),
-	};
-}
-
-class ArrayWithOriginalIndexes<T> {
-	private array: T[];
-	private originalIndexes: number[];
-	private equalsFn: (a: T, b: T) => boolean;
-
-	constructor(array: T[], equalsFn: (a: T, b: T) => boolean) {
-		this.equalsFn = equalsFn;
-		this.array = array;
-		this.originalIndexes = array.map((_, i) => i);
-	}
-
-	get length() {
-		return this.array.length;
-	}
-
-	isRemoval(index: number, newArray: T[]) {
-		if (index >= this.length) return false;
-
-		const item = this.array[index];
-		const indexInNewArray = newArray.findIndex(newItem =>
-			this.equalsFn(item, newItem)
-		);
-
-		return indexInNewArray === -1;
-	}
-
-	removeItem(index: number) {
-		const operation = {
-			op: ARRAY_DIFF_OP.REMOVE,
-			index,
-			item: this.array[index],
-		};
-
-		this.array.splice(index, 1);
-		this.originalIndexes.splice(index, 1);
-
-		return operation;
-	}
-
-	isNoop(index: number, newArray: T[]) {
-		if (index >= this.length) return false;
-
-		const item = this.array[index];
-		const newItem = newArray[index];
-
-		return this.equalsFn(item, newItem);
-	}
-
-	originalIndexAt(index: number) {
-		return this.originalIndexes[index];
-	}
-
-	noopItem(index: number) {
-		return {
-			op: ARRAY_DIFF_OP.NOOP,
-			originalIndex: this.originalIndexAt(index),
-			index,
-			item: this.array[index],
-		};
-	}
-
-	isAddition(item: T, fromIdx: number) {
-		return this.findIndexFrom(item, fromIdx) === -1;
-	}
-
-	findIndexFrom(item: T, fromIdx: number) {
-		for (let i = fromIdx; i < this.length; i++) {
-			if (this.equalsFn(item, this.array[i])) return i;
-		}
-
-		return -1;
-	}
-
-	addItem(index: number, item: T) {
-		const operation = {
-			op: ARRAY_DIFF_OP.ADD,
-			index,
-			item,
-		};
-
-		this.array.splice(index, 0, item);
-		this.originalIndexes.splice(index, 0, -1);
-
-		return operation;
-	}
-
-	moveItem(item: T, toIndex: number) {
-		const fromIndex = this.findIndexFrom(item, toIndex);
-		const operation = {
-			op: ARRAY_DIFF_OP.MOVE,
-			fromIndex,
-			toIndex,
-			item,
-		};
-
-		const [_item] = this.array.splice(fromIndex, 1);
-		this.array.splice(toIndex, 0, _item);
-
-		const [_originalIndex] = this.originalIndexes.splice(fromIndex, 1);
-		this.originalIndexes.splice(toIndex, 0, _originalIndex);
-
-		return operation;
-	}
-
-	removeItemsAfter(index: number) {
-		const operations = [];
-
-		while (this.length > index) {
-			operations.push(this.removeItem(index));
-		}
-
-		return operations;
-	}
-}
-
-export function arraysDiffSequence<T, U>(
+export function arraysDiffSequence<T>(
 	oldArray: T[],
 	newArray: T[],
 	equalsFn: (a: T, b: T) => boolean = (a, b) => a === b
 ) {
-	const sequence = [];
-	const array = new ArrayWithOriginalIndexes(oldArray, equalsFn);
+	const { removals, movedPositions } = findRemovals(
+		oldArray,
+		newArray,
+		equalsFn
+	);
+	const additionsAndMoves = findAdditionsAndMoves(
+		oldArray,
+		newArray,
+		equalsFn,
+		movedPositions
+	);
 
-	for (let i = 0; i < newArray.length; i++) {
-		if (array.isRemoval(i, newArray)) {
-			sequence.push(array.removeItem(i));
-			i--;
-			continue;
-		}
-
-		if (array.isNoop(i, newArray)) {
-			sequence.push(array.noopItem(i));
-			continue;
-		}
-
-		const item = newArray[i];
-
-		if (array.isAddition(item, i)) {
-			sequence.push(array.addItem(i, item));
-			continue;
-		}
-
-		sequence.push(array.moveItem(item, i));
-	}
-
-	sequence.push(...array.removeItemsAfter(newArray.length));
+	const sequence = [...removals, ...additionsAndMoves];
+	sequence.sort((a, b) => a.index - b.index);
 
 	return sequence;
+}
+
+export function arraysDiff(oldArray: string[], newArray: string[]) {
+	return {
+		added: newArray.filter(
+			newItem => !oldArray.some(oldItem => oldItem === newItem)
+		),
+		removed: oldArray.filter(
+			oldItem => !newArray.some(newItem => newItem === oldItem)
+		),
+	};
+}
+
+export function applyArraysDiffSequence<T, U>(
+	oldArray: T[],
+	diffSeq: { op: string; index: number; item: T; from: number }[]
+) {
+	return diffSeq.reduce((array, { op, item, index, from }) => {
+		switch (op) {
+			case ARRAY_DIFF_OP.ADD: {
+				array.splice(index, 0, item);
+				break;
+			}
+
+			case ARRAY_DIFF_OP.REMOVE: {
+				array.splice(index, 1);
+				break;
+			}
+
+			case ARRAY_DIFF_OP.MOVE: {
+				array.splice(index, 0, array.splice(from, 1)[0]);
+				break;
+			}
+		}
+
+		return array;
+	}, oldArray);
 }
 
 export function areNodesEqual(nodeOne: VNode, nodeTwo: VNode) {
@@ -196,4 +99,106 @@ export function areNodesEqual(nodeOne: VNode, nodeTwo: VNode) {
 	}
 
 	return true;
+}
+
+function findRemovals<T>(
+	oldArray = [],
+	newArray = [],
+	equalsFn: (a: T, b: T) => boolean = (a, b) => a === b
+) {
+	const foundIndicesInNewArray = new Set();
+
+	const movedPositions = Array(oldArray.length).fill(0);
+	const sequence = [];
+
+	for (let i = 0; i < oldArray.length; i++) {
+		const item = oldArray[i];
+		const indexInNewArray = newArray.findIndex(
+			(newItem, newIndex) =>
+				equalsFn(item, newItem) && !foundIndicesInNewArray.has(newIndex)
+		);
+		const wasRemoved = indexInNewArray === -1;
+
+		if (wasRemoved) {
+			sequence.push({
+				op: ARRAY_DIFF_OP.REMOVE,
+				index: i,
+				item,
+			});
+
+			for (let index = i + 1; index < movedPositions.length; index++) {
+				movedPositions[index] -= 1;
+			}
+		} else {
+			foundIndicesInNewArray.add(indexInNewArray);
+		}
+	}
+
+	return { removals: sequence, movedPositions };
+}
+
+function findAdditionsAndMoves<T>(
+	oldArray = [],
+	newArray = [],
+	equalsFn: (a: T, b: T) => boolean = (a, b) => a === b,
+	movedPositions: number[] = []
+) {
+	const foundIndicesInOldArray = new Set();
+	const sequence = [];
+
+	for (let index = 0; index < newArray.length; index++) {
+		const item = newArray[index];
+		const from = oldArray.findIndex(
+			(oldItem, oldIndex) =>
+				equalsFn(item, oldItem) && !foundIndicesInOldArray.has(oldIndex)
+		);
+
+		const isAdded = from === -1;
+		const isPossiblyMoved = !isAdded && from !== index;
+		const isMoved = isPossiblyMoved && !hasOppositeMove(sequence, from, index);
+
+		if (isAdded) {
+			sequence.push({
+				op: ARRAY_DIFF_OP.ADD,
+				index,
+				item,
+			});
+
+			for (let i = index; i < movedPositions.length; i++) {
+				movedPositions[i] += 1;
+			}
+		} else if (isMoved) {
+			const positions = index - from;
+
+			if (positions !== movedPositions[from]) {
+				sequence.push({ op: ARRAY_DIFF_OP.MOVE, from, index, item });
+
+				if (positions < 0) {
+					for (let i = 0; i < from; i++) {
+						movedPositions[i] += 1;
+					}
+				} else {
+					for (let i = from + 1; i < index; i++) {
+						movedPositions[i] -= 1;
+					}
+				}
+			} else {
+				sequence.push({ op: ARRAY_DIFF_OP.NOOP, from, index });
+			}
+
+			foundIndicesInOldArray.add(from);
+		} else {
+			sequence.push({ op: ARRAY_DIFF_OP.NOOP, from, index });
+			foundIndicesInOldArray.add(from);
+		}
+	}
+
+	return sequence;
+}
+
+function hasOppositeMove(sequence = [], from: number, to: number) {
+	return sequence.some(
+		({ op, from: _from, index: _to }) =>
+			op === ARRAY_DIFF_OP.MOVE && _from === to && _to === from
+	);
 }

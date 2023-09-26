@@ -7,7 +7,7 @@ import {
 } from './lib/attributes';
 import { addEventListener } from './lib/events';
 import { mountDOM } from './mount-dom';
-import { DOM_TYPES, VNode } from './nodes';
+import { DOM_TYPES, VNode, VNodeElement, VNodeFragment } from './nodes';
 import {
 	ARRAY_DIFF_OP,
 	areNodesEqual,
@@ -43,7 +43,7 @@ export function patchDOM(
 		}
 	}
 
-	patchChildren(oldVdom, newVdom);
+	patchChildren(oldVdom as VNodeElement | VNodeFragment, newVdom);
 
 	return newVdom;
 }
@@ -193,19 +193,21 @@ function patchEvents(
 	return addedListeners;
 }
 
-function patchChildren(oldVdom: VNode, newVdom: VNode) {
-	const oldChildren = extractChildren(oldVdom);
-	const newChildren = extractChildren(newVdom);
+function patchChildren(
+	oldVdom: VNodeElement | VNodeFragment,
+	newVdom: VNodeElement | VNodeFragment
+) {
+	// const oldChildren = extractChildren(oldVdom);
+	// const newChildren = extractChildren(newVdom);
+	const oldChildren = oldVdom.children ?? [];
+	const newChildren = newVdom.children ?? [];
+
 	const parentEl = oldVdom.el;
 
 	const diffSeq = arraysDiffSequence(oldChildren, newChildren, areNodesEqual);
 
 	for (const operation of diffSeq) {
-		const { originalIndex, index, item } = operation as unknown as {
-			originalIndex: number;
-			index: number;
-			item: VNode;
-		};
+		const { from, index, item } = operation;
 
 		switch (operation.op) {
 			case ARRAY_DIFF_OP.ADD: {
@@ -219,20 +221,22 @@ function patchChildren(oldVdom: VNode, newVdom: VNode) {
 			}
 
 			case ARRAY_DIFF_OP.MOVE: {
-				const oldChild = oldChildren[originalIndex];
-				const newChild = newChildren[index];
-				const el = oldChild.el;
+				const el = oldChildren[from].el;
 				const elAtTargetIndex = parentEl!.childNodes[index];
 
 				parentEl!.insertBefore(el as HTMLElement, elAtTargetIndex);
-				patchDOM(oldChild, newChild, parentEl as HTMLElement);
+				patchDOM(
+					oldChildren[from],
+					newChildren[index],
+					parentEl as HTMLElement
+				);
 
 				break;
 			}
 
 			case ARRAY_DIFF_OP.NOOP: {
 				patchDOM(
-					oldChildren[originalIndex],
+					oldChildren[from],
 					newChildren[index],
 					parentEl as HTMLElement
 				);
@@ -240,24 +244,74 @@ function patchChildren(oldVdom: VNode, newVdom: VNode) {
 			}
 		}
 	}
+
+	// for (const operation of diffSeq) {
+	// 	const { originalIndex, index, item } = operation as unknown as {
+	// 		originalIndex: number;
+	// 		index: number;
+	// 		item: VNode;
+	// 	};
+
+	// 	switch (operation.op) {
+	// 		case ARRAY_DIFF_OP.ADD: {
+	// 			mountDOM(item, parentEl as HTMLElement, index);
+	// 			break;
+	// 		}
+
+	// 		case ARRAY_DIFF_OP.REMOVE: {
+	// 			destroyDOM(item);
+	// 			break;
+	// 		}
+
+	// 		case ARRAY_DIFF_OP.MOVE: {
+	// 			// const oldChild = oldChildren[originalIndex];
+	// 			// const newChild = newChildren[index];
+	// 			// const el = oldChild.el;
+	// 			// const elAtTargetIndex = parentEl!.childNodes[index];
+
+	// 			// parentEl!.insertBefore(el as HTMLElement, elAtTargetIndex);
+	// 			// patchDOM(oldChild, newChild, parentEl as HTMLElement);
+	// 			const el = oldChildren[originalIndex].el;
+	// 			const elAtTargetIndex = parentEl!.childNodes[index];
+
+	// 			parentEl!.insertBefore(el as HTMLElement, elAtTargetIndex);
+	// 			patchDOM(
+	// 				oldChildren[originalIndex],
+	// 				newChildren[index],
+	// 				parentEl as HTMLElement
+	// 			);
+
+	// 			break;
+	// 		}
+
+	// 		case ARRAY_DIFF_OP.NOOP: {
+	// 			patchDOM(
+	// 				oldChildren[originalIndex],
+	// 				newChildren[index],
+	// 				parentEl as HTMLElement
+	// 			);
+	// 			break;
+	// 		}
+	// 	}
+	// }
 }
 
-export function extractChildren(vdom: VNode, children: VNode[] = []) {
-	if (vdom.type === DOM_TYPES.TEXT) {
-		return null;
-	}
+// export function extractChildren(vdom: VNode, children: VNode[] = []) {
+// 	if (vdom.type === DOM_TYPES.TEXT) {
+// 		return null;
+// 	}
 
-	if (vdom.children == null) {
-		return [];
-	}
+// 	if (vdom.children == null) {
+// 		return [];
+// 	}
 
-	for (const child of vdom.children) {
-		if (child.type === DOM_TYPES.FRAGMENT) {
-			children.push(...extractChildren(child, children));
-		} else {
-			children.push(child);
-		}
-	}
+// 	for (const child of vdom.children) {
+// 		if (child.type === DOM_TYPES.FRAGMENT) {
+// 			children.push(...extractChildren(child, children));
+// 		} else {
+// 			children.push(child);
+// 		}
+// 	}
 
-	return children;
-}
+// 	return children;
+// }

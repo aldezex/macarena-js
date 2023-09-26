@@ -1,18 +1,13 @@
-export function dispatcher() {
-	const subs = new Map<string, Array<Function>>();
-	const afterHandlers: Function[] = [];
+export class Dispatcher {
+	subs = new Map<string, Array<Function>>();
+	afterHandlers: Function[] = [];
 
-	function subscribe(command: string, handler: Function) {
-		if (!subs.has(command)) {
-			subs.set(command, []);
+	subscribe(command: string, handler: Function) {
+		if (!this.subs.has(command)) {
+			this.subs.set(command, []);
 		}
 
-		const handlers = subs.get(command);
-
-		if (!handlers) {
-			return () => {};
-		}
-
+		const handlers = this.subs.get(command)!;
 		if (handlers.includes(handler)) {
 			return () => {};
 		}
@@ -25,17 +20,17 @@ export function dispatcher() {
 		};
 	}
 
-	function afterEveryCommand(handler: Function) {
-		afterHandlers.push(handler);
+	afterEveryCommand(handler: Function) {
+		this.afterHandlers.push(handler);
 
 		return () => {
-			const index = afterHandlers.indexOf(handler);
-			afterHandlers.splice(index, 1);
+			const index = this.afterHandlers.indexOf(handler);
+			this.afterHandlers.splice(index, 1);
 		};
 	}
 
-	function dispatch(command: string, payload: any) {
-		const handlers = subs.get(command);
+	dispatch(command: string, payload: any) {
+		const handlers = this.subs.get(command);
 
 		if (handlers) {
 			handlers.forEach(handler => handler(payload));
@@ -43,12 +38,6 @@ export function dispatcher() {
 			console.warn(`No handlers for command: ${command}`);
 		}
 
-		afterHandlers.forEach(handler => handler());
+		this.afterHandlers.forEach(handler => handler());
 	}
-
-	return {
-		subscribe,
-		afterEveryCommand,
-		dispatch,
-	};
 }

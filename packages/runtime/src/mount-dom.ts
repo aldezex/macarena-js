@@ -27,7 +27,7 @@ export function mountDOM(vdom: VNode, parentEl: HTMLElement, index?: number) {
 }
 
 export function insert(
-	el: HTMLElement | Text,
+	el: HTMLElement | Text | DocumentFragment,
 	parentEl: HTMLElement,
 	index?: number
 ) {

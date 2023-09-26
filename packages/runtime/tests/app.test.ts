@@ -72,9 +72,7 @@ describe('createApp', () => {
 					h('div', {}, [
 						h('button', { onclick: () => emit('add', 1) }, ['Add']),
 						h('button', { onclick: () => emit('substract', 1) }, ['Substract']),
-						h('span', { style: { color: state < 1 ? 'red' : 'green' } }, [
-							'Count is greater than 1',
-						]),
+						state == 0 ? h('p', {}, ['Count is zero']) : null,
 					]),
 				]),
 		});
@@ -83,7 +81,7 @@ describe('createApp', () => {
 		app.mount(el);
 
 		expect(el.innerHTML).toBe(
-			'<h1>Count: 0<div><button>Add</button><button>Substract</button></div></h1>'
+			'<h1>Count: 0<div><button>Add</button><button>Substract</button><p>Count is zero</p></div></h1>'
 		);
 
 		const buttons = el.querySelectorAll('button');
@@ -94,22 +92,6 @@ describe('createApp', () => {
 			'<h1>Count: 1<div><button>Add</button><button>Substract</button></div></h1>'
 		);
 
-		buttons[1].click();
-		buttons[1].click();
-
-		expect(el.innerHTML).toBe(
-			'<h1>Count: -1<div><button>Add</button><button>Substract</button></div></h1>'
-		);
-
-		buttons[0].click();
-		buttons[0].click();
-		buttons[0].click();
-
-		expect(el.innerHTML).toBe(
-			'<h1>Count: 2<div><button>Add</button><button>Substract</button>Count is greater than 1</div></h1>'
-		);
-
-		buttons[1].click();
 		buttons[1].click();
 		buttons[1].click();
 

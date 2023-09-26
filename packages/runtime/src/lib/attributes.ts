@@ -2,6 +2,8 @@ export function setAttributes(el: HTMLElement, attrs: Record<string, any>) {
 	const { class: className, style, ...otherAttrs } = attrs;
 	const styles = style as Record<string, string>;
 
+	delete otherAttrs.key;
+
 	if (className) {
 		setClass(el, className);
 	}
@@ -30,11 +32,13 @@ function setClass(el: HTMLElement, className: string | string[]) {
 }
 
 export function setStyle(el: HTMLElement, key: string, value: string) {
-	el.style.setProperty(key, value);
+	// el.style.setProperty(key, value);
+	(el.style as any)[key] = value;
 }
 
 export function removeStyle(el: HTMLElement, key: string) {
-	el.style.removeProperty(key);
+	// el.style.removeProperty(key);
+	(el.style as any)[key] = null;
 }
 
 export function setAttribute(el: HTMLElement, name: string, value: string) {
@@ -48,6 +52,11 @@ export function setAttribute(el: HTMLElement, name: string, value: string) {
 }
 
 export function removeAttribute(el: HTMLElement, name: string) {
-	(el as any)[name] = null;
+	try {
+		(el as any)[name] = null;
+	} catch (error) {
+		console.warn(`Could not remove attribute ${name} from element`, el.tagName);
+	}
+
 	el.removeAttribute(name);
 }

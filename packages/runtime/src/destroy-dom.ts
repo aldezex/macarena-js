@@ -4,12 +4,28 @@ import { removeFragmentNodes } from './nodes/fragment';
 import { removeTextNode } from './nodes/text';
 
 export function destroyDOM(vdom: VNode) {
-	switch (vdom.type) {
-		case DOM_TYPES.ELEMENT:
-			return removeElementNode(vdom);
-		case DOM_TYPES.FRAGMENT:
-			return removeFragmentNodes(vdom);
-		case DOM_TYPES.TEXT:
-			return removeTextNode(vdom);
+	const { type, el } = vdom;
+
+	switch (type) {
+		case DOM_TYPES.ELEMENT: {
+			removeElementNode(vdom);
+			break;
+		}
+
+		case DOM_TYPES.FRAGMENT: {
+			removeFragmentNodes(vdom);
+			break;
+		}
+
+		case DOM_TYPES.TEXT: {
+			removeTextNode(vdom);
+			break;
+		}
+
+		default: {
+			throw new Error(`Unknown DOM type: ${type}`);
+		}
 	}
+
+	vdom.el = null;
 }

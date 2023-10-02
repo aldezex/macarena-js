@@ -1,31 +1,55 @@
-import { DOM_TYPES, VNode } from './nodes';
-import { removeElementNode } from './nodes/element';
-import { removeFragmentNodes } from './nodes/fragment';
-import { removeTextNode } from './nodes/text';
+import { DOM_TYPES, HElement, HFragment, HNode, HText } from './h';
 
-export function destroyDOM(vdom: VNode) {
-	const { type, el } = vdom;
+function destroyDOM(node: HNode): void {
+	const { type } = node;
 
 	switch (type) {
-		case DOM_TYPES.ELEMENT: {
-			removeElementNode(vdom);
+		case DOM_TYPES.ELEMENT:
+			removeElementNode(node as HElement);
 			break;
-		}
 
-		case DOM_TYPES.FRAGMENT: {
-			removeFragmentNodes(vdom);
+		case DOM_TYPES.FRAGMENT:
+			removeFragmentNodes(node as HFragment);
 			break;
-		}
 
-		case DOM_TYPES.TEXT: {
-			removeTextNode(vdom);
+		case DOM_TYPES.TEXT:
+			removeTextNode(node as HText);
 			break;
-		}
 
-		default: {
+		default:
 			throw new Error(`Unknown DOM type: ${type}`);
-		}
 	}
 
-	vdom.el = null;
+	node.el = undefined;
 }
+
+function removeElementNode(node: HElement): void {
+	if (!node.el) {
+		throw new Error('DOM element is not defined');
+	}
+
+	node.children
+		.filter(child => child !== null)
+		.forEach(child => {
+			destroyDOM(child as HNode);
+		});
+
+	node.el.remove();
+}
+
+function removeFragmentNodes(node: HFragment): void {
+	node.children
+		.filter(child => child !== null)
+		.forEach(child => {
+			destroyDOM(child as HNode);
+		});
+}
+
+function removeTextNode(node: HText): void {
+	if (!node.el) {
+		throw new Error('DOM element is not defined');
+	}
+	node.el.remove();
+}
+
+export { destroyDOM };

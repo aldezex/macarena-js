@@ -1,5 +1,5 @@
-import { ChildrenVNode } from '../nodes';
+import { HNode } from '../h';
 
-export function withoutNulls(arr: ChildrenVNode[]) {
-	return arr.filter(item => item !== null);
+export function withoutNulls(array: HNode[]) {
+	return array.filter(item => item !== null);
 }

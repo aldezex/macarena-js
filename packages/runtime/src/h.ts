@@ -1,16 +1,63 @@
-import { ChildrenVNode, DOM_TYPES, VNodeElement } from './nodes';
-import { mapTextNodes } from './nodes/text';
 import { withoutNulls } from './utils/arrays';
+import { mapTextNodes } from './utils/text';
 
-export function h(
+const DOM_TYPES = {
+	ELEMENT: 'ELEMENT',
+	FRAGMENT: 'FRAGMENT',
+	TEXT: 'TEXT',
+} as const;
+
+type DomType = (typeof DOM_TYPES)[keyof typeof DOM_TYPES];
+
+type HBase = {
+	el?: ChildNode;
+};
+
+export type HElement = HBase & {
+	tag: string;
+	props: Record<string, any>;
+	children: HChild[];
+	type: typeof DOM_TYPES.ELEMENT;
+};
+
+export type HFragment = HBase & {
+	children: HChild[];
+	type: typeof DOM_TYPES.FRAGMENT;
+};
+
+export type HText = HBase & {
+	text: string;
+	type: typeof DOM_TYPES.TEXT;
+};
+
+type HNode = HElement | HFragment | HText;
+type HChild = HNode | string | number | null;
+
+function h(
 	tag: string,
-	props: Record<string, any> = {},
-	children: ChildrenVNode[] = []
-) {
+	props: Record<string, any>,
+	children: HChild[]
+): HElement {
 	return {
 		tag,
 		props,
-		children: mapTextNodes(withoutNulls(children)),
+		children: mapTextNodes(withoutNulls(children as HNode[])),
 		type: DOM_TYPES.ELEMENT,
-	} as VNodeElement;
+	};
 }
+
+function hFragment(children: HChild[]): HFragment {
+	return {
+		children: mapTextNodes(withoutNulls(children as HNode[])),
+		type: DOM_TYPES.FRAGMENT,
+	};
+}
+
+function hText(text: string): HText {
+	return {
+		text,
+		type: DOM_TYPES.TEXT,
+	};
+}
+
+export { DOM_TYPES, h, hFragment, hText, HNode, DomType, HChild };

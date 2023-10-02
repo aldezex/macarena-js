@@ -1,4 +1,5 @@
 import { DOM_TYPES, HElement, HFragment, HNode, HText } from './h';
+import { removeEventListeners } from './utils/events';
 
 function destroyDOM(node: HNode): void {
 	const { type } = node;
@@ -33,6 +34,11 @@ function removeElementNode(node: HElement): void {
 		.forEach(child => {
 			destroyDOM(child as HNode);
 		});
+
+	if (node.listeners) {
+		removeEventListeners(node.listeners, node.el);
+		delete node.listeners;
+	}
 
 	node.el.remove();
 }

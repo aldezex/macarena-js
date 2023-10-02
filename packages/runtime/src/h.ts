@@ -1,4 +1,5 @@
 import { withoutNulls } from './utils/arrays';
+import { DOMEventName } from './utils/events';
 import { mapTextNodes } from './utils/text';
 
 const DOM_TYPES = {
@@ -13,11 +14,25 @@ type HBase = {
 	el?: ChildNode;
 };
 
+type Props = {
+	styles?: {
+		[key: string]: string;
+	};
+	className?: string | string[];
+	on?: {
+		[key in DOMEventName]?: EventListener;
+	};
+	[key: string]: any;
+};
+
 export type HElement = HBase & {
 	tag: string;
-	props: Record<string, any>;
+	props: Props;
 	children: HChild[];
 	type: typeof DOM_TYPES.ELEMENT;
+	listeners?: {
+		[key in DOMEventName]?: EventListener;
+	};
 };
 
 export type HFragment = HBase & {
@@ -33,11 +48,7 @@ export type HText = HBase & {
 type HNode = HElement | HFragment | HText;
 type HChild = HNode | string | number | null;
 
-function h(
-	tag: string,
-	props: Record<string, any>,
-	children: HChild[]
-): HElement {
+function h(tag: string, props: Props, children: HChild[] = []): HElement {
 	return {
 		tag,
 		props,

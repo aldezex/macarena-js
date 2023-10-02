@@ -1,5 +1,7 @@
 import { DOM_TYPES, HChild, HElement, HFragment, HNode, HText } from './h';
 import { withoutNulls } from './utils/arrays';
+import { addEventListeners } from './utils/events';
+import { applyClasses, applyStyles, setAttribute } from './utils/props';
 import { mapTextNodes } from './utils/text';
 
 function createElement(node: HElement): HTMLElement {
@@ -22,6 +24,24 @@ function appendChildren(element: HTMLElement, children: HChild[]): void {
 function mountElement(node: HElement, parent: HTMLElement): void {
 	const element = createElement(node);
 	node.el = element;
+
+	const { styles, className, on: events, ...props } = node.props;
+
+	if (events) {
+		node.listeners = addEventListeners(events, element);
+	}
+
+	if (styles) {
+		applyStyles(element, styles);
+	}
+
+	if (className) {
+		applyClasses(element, className);
+	}
+
+	for (const [key, value] of Object.entries(props)) {
+		setAttribute(element, key, value);
+	}
 
 	appendChildren(element, node.children);
 	parent.appendChild(element);

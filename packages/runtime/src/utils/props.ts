@@ -60,4 +60,4 @@ function setAttributes(
 	});
 }
 
-export { setAttributes };
+export { setAttributes, setAttribute, removeAttribute, removeStyles };

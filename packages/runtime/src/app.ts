@@ -2,6 +2,7 @@ import { destroyDOM } from './destroy-dom';
 import { Dispatcher } from './dispatcher';
 import { HNode } from './h';
 import { mountDOM } from './mount-dom';
+import { patchDOM } from './patch-dom';
 
 type Reducer<S, P> = (state: S, payload: P) => S;
 type View<S> = (
@@ -28,16 +29,13 @@ function createApp<S>({
 
 	function render() {
 		if (vdom) {
-			destroyDOM(vdom);
+			const newVdom = view(state, dispatcher.dispatch.bind(dispatcher));
+			patchDOM(vdom, newVdom, document.getElementById('app')!);
+			vdom = newVdom;
+		} else {
+			vdom = view(state, dispatcher.dispatch.bind(dispatcher));
+			mountDOM(vdom as HNode, document.getElementById('app')!);
 		}
-
-		const app = document.getElementById('app');
-		if (!app) {
-			throw new Error('App element is not defined');
-		}
-
-		vdom = view(state, dispatcher.dispatch.bind(dispatcher));
-		mountDOM(vdom, app);
 	}
 
 	for (const [key, reducer] of Object.entries(reducers)) {
@@ -50,7 +48,8 @@ function createApp<S>({
 
 	return {
 		mount() {
-			render();
+			vdom = view(state, dispatcher.dispatch.bind(dispatcher));
+			mountDOM(vdom as HNode, document.getElementById('app')!);
 		},
 		unmount() {
 			destroyDOM(vdom as HNode);

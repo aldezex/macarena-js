@@ -98,5 +98,14 @@ test('we can subscribe to events and rerender the app', () => {
 
 	expect(el.querySelector('span')?.textContent).toBe('0');
 
+	add.click();
+	add.click();
+
+	expect(el.querySelector('span')?.textContent).toBe('2');
+
+	substract.click();
+
+	expect(el.querySelector('span')?.textContent).toBe('1');
+
 	app.unmount();
 });

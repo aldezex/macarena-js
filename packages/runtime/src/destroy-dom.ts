@@ -21,26 +21,25 @@ function destroyDOM(node: HNode): void {
 			throw new Error(`Unknown DOM type: ${type}`);
 	}
 
-	node.el = undefined;
+	delete node.el;
 }
 
 function removeElementNode(node: HElement): void {
-	if (!node.el) {
+	const { el, children, listeners } = node;
+
+	if (!el) {
 		throw new Error('DOM element is not defined');
 	}
 
-	node.children
-		.filter(child => child !== null)
-		.forEach(child => {
-			destroyDOM(child as HNode);
-		});
+	el.remove();
+	children.forEach(child => {
+		destroyDOM(child as HNode);
+	});
 
-	if (node.listeners) {
-		removeEventListeners(node.listeners, node.el);
+	if (listeners) {
+		removeEventListeners(listeners, el);
 		delete node.listeners;
 	}
-
-	node.el.remove();
 }
 
 function removeFragmentNodes(node: HFragment): void {

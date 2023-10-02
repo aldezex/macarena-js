@@ -1,18 +1,7 @@
 import { mutableHTMLElementKeys } from './keys';
 
-function applyStyles(
-	element: HTMLElement,
-	styles: {
-		[key: string]: string;
-	}
-) {
-	for (const [key, value] of Object.entries(styles)) {
-		element.style.setProperty(key, value);
-	}
-}
-
-function removeStyles(element: HTMLElement, styles: string[]) {
-	styles.forEach(styleKey => {
+function removeStyles(element: HTMLElement, style: string[]) {
+	style.forEach(styleKey => {
 		element.style.removeProperty(styleKey);
 	});
 }
@@ -41,11 +30,34 @@ function setAttribute(el: HTMLElement, name: string, value: string): void {
 	}
 }
 
-export function removeAttribute(el: HTMLElement, name: string): void {
+function removeAttribute(el: HTMLElement, name: string): void {
 	if (mutableHTMLElementKeys.has(name)) {
 		(el as any)[name] = null; // again, we know it's mutable
 	}
 	el.removeAttribute(name);
 }
 
-export { applyStyles, removeStyles, applyClasses, setAttribute };
+function setAttributes(
+	el: HTMLElement,
+	attributes: Record<string, string>
+): void {
+	const { className, style, ...rest } = attributes;
+
+	delete rest.key;
+
+	if (className) {
+		applyClasses(el, className);
+	}
+
+	if (style) {
+		Object.entries(style).forEach(([key, value]) => {
+			el.style.setProperty(key, value);
+		});
+	}
+
+	Object.entries(rest).forEach(([key, value]) => {
+		setAttribute(el, key, value);
+	});
+}
+
+export { setAttributes };

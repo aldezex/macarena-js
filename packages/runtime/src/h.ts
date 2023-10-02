@@ -15,7 +15,7 @@ type HBase = {
 };
 
 type Props = {
-	styles?: {
+	style?: {
 		[key: string]: string;
 	};
 	className?: string | string[];

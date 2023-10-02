@@ -1,12 +1,8 @@
 import { DOM_TYPES, HChild, HElement, HFragment, HNode, HText } from './h';
 import { withoutNulls } from './utils/arrays';
 import { addEventListeners } from './utils/events';
-import { applyClasses, applyStyles, setAttribute } from './utils/props';
+import { setAttributes } from './utils/props';
 import { mapTextNodes } from './utils/text';
-
-function createElement(node: HElement): HTMLElement {
-	return document.createElement(node.tag);
-}
 
 export function normalizeChildren(array: HChild[]): HNode[] {
 	return withoutNulls(
@@ -22,32 +18,33 @@ function appendChildren(element: HTMLElement, children: HChild[]): void {
 }
 
 function mountElement(node: HElement, parent: HTMLElement): void {
-	const element = createElement(node);
+	const { tag, props, children } = node;
+
+	const element = document.createElement(tag);
+	addProps(element, props, node);
 	node.el = element;
 
-	const { styles, className, on: events, ...props } = node.props;
+	children.forEach((child: HChild) => {
+		mountDOM(child as HNode, element);
+	});
 
-	if (events) {
-		node.listeners = addEventListeners(events, element);
-	}
-
-	if (styles) {
-		applyStyles(element, styles);
-	}
-
-	if (className) {
-		applyClasses(element, className);
-	}
-
-	for (const [key, value] of Object.entries(props)) {
-		setAttribute(element, key, value);
-	}
-
-	appendChildren(element, node.children);
 	parent.appendChild(element);
 }
 
+function addProps(
+	element: HTMLElement,
+	props: Record<string, any>,
+	node: HElement
+): void {
+	const { on: events, ...rest } = props;
+
+	node.listeners = addEventListeners(events, element);
+	setAttributes(element, rest);
+}
+
 function mountFragment(node: HFragment, parent: HTMLElement): void {
+	node.el = parent;
+
 	appendChildren(parent, node.children);
 }
 

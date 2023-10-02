@@ -3,7 +3,7 @@ import { test, expect, vi } from 'vitest';
 import { destroyDOM, h, mountDOM } from '../src/';
 
 test('mountDOM and applyStyles works together', () => {
-	const vDOM = h('div', { styles: { color: 'blue', 'font-size': '20px' } }, []);
+	const vDOM = h('div', { style: { color: 'blue', 'font-size': '20px' } }, []);
 	mountDOM(vDOM, document.body);
 
 	const element = document.querySelector('div');

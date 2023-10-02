@@ -1,6 +1,8 @@
-import { createApp } from '../../packages/runtime/dist/runtime.es';
-import { h } from '../../packages/runtime/src/h';
-import { hFragment } from '../../packages/runtime/src/nodes/fragment';
+import {
+	createApp,
+	hFragment,
+	h,
+} from '../../packages/runtime/dist/runtime.es';
 
 const state = {
 	currentTodo: '',
@@ -127,4 +129,4 @@ function TodoItem({ todo, i, edit }, emit) {
 		  ]);
 }
 
-createApp({ state, reducers, view: App }).mount(document.body);
+createApp({ initialState: state, reducers, view: App }).mount(document.body);
